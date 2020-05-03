@@ -1,0 +1,26 @@
+###
+# 通过链接创建图文页面
+# 参数：token; cookie
+GET https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit_v2&action=edit&isNew=1&type=10&token=1334668015&lang=zh_CN HTTP/1.1
+Host: mp.weixin.qq.com
+Referer: https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit_v2&action=edit&isNew=1&type=10&token=1334668015&lang=zh_CN
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36
+Cookie: ""
+
+###
+# 公众号 FakeID 查询接口
+# 参数：token; query; begin; cookie
+GET https://mp.weixin.qq.com/cgi-bin/searchbiz?action=search_biz&begin=0&count=5&query=golang%E6%9D%A5%E5%95%A6&token=1334668015&lang=zh_CN&f=json&ajax=1 HTTP/1.1
+Host: mp.weixin.qq.com
+Referer: https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit_v2&action=edit&isNew=1&type=10&token=1334668015&lang=zh_CN
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36
+Cookie: ""
+
+###
+# 文章列表查询接口
+# 参数：token; fakeid; begin; cookie
+GET https://mp.weixin.qq.com/cgi-bin/appmsg?action=list_ex&begin=0&count=5&fakeid=MzI2MDA1MTcxMg==&type=9&query=&token=1334668015&lang=zh_CN&f=json&ajax=1 HTTP/1.1
+Host: mp.weixin.qq.com
+Referer: https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit_v2&action=edit&isNew=1&type=10&token=1334668015&lang=zh_CN
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36
+Cookie: ""
