@@ -58,9 +58,13 @@ func (req *Request) SetCookie(cookie interface{}) *Request {
         ck = string(c)
     case string:
         ck = c
+    default:
+        return req
     }
 
-    req.Input.Header.Add("Cookie", ck)
+    if len(ck) > 0 {
+        req.Input.Header.Add("Cookie", ck)
+    }
 
     return req
 }
@@ -103,16 +107,22 @@ func (req *Request) SetBody(body interface{}) *Request {
         return req
     }
 
+    var buf *bytes.Buffer
+    var length int
     switch b := body.(type) {
     case []byte:
-        buf := bytes.NewBuffer(b)
-        req.Input.Body = ioutil.NopCloser(buf)
-        req.Input.ContentLength = int64(len(b))
-
+        buf = bytes.NewBuffer(b)
+        length = len(b)
     case string:
-        buf := bytes.NewBufferString(b)
-        req.Input.Body = ioutil.NopCloser(buf)
-        req.Input.ContentLength = int64(len(b))
+        buf = bytes.NewBufferString(b)
+        length = len(b)
+    default:
+        return req
+    }
+
+    if buf != nil {
+        req.Input.Body = io.NopCloser(buf)
+        req.Input.ContentLength = int64(length)
     }
 
     return req
@@ -151,8 +161,11 @@ func (req *Request) Do(c ...*Xrawler) (*http.Response, error) {
     if req.Input.Method == http.MethodHead || req.Input.Method == http.MethodGet {
         req.Input.URL.RawQuery = req.params.Encode()
     } else if req.Input.Method == http.MethodPost {
-        req.Input.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-        req.SetBody(req.params.Encode())
+        query := req.params.Encode()
+        if req.Input.Header.Get("Content-Type") == "" && query != "" {
+            req.Input.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+            req.SetBody(query)
+        }
     }
 
     var err error
@@ -222,10 +235,10 @@ func Get(url string) *Request {
     return NewRequest(url, http.MethodGet)
 }
 
-// func Post(url string) *Request {
-//     return NewRequest(url, http.MethodPost)
-// }
+func Post(url string) *Request {
+    return NewRequest(url, http.MethodPost)
+}
 
-// func Head(url string) *Request {
-//     return NewRequest(url, http.MethodHead)
-// }
+func Head(url string) *Request {
+    return NewRequest(url, http.MethodHead)
+}
