@@ -2,6 +2,7 @@ package xrawler
 
 import (
     "crypto/tls"
+    "errors"
     "log"
     "net/http"
     "net/http/cookiejar"
@@ -20,6 +21,7 @@ type Xrawler struct {
     ConnectTimeout    time.Duration
     ReadWriteTimeout  time.Duration
     DisableKeepAlives bool
+    DisableRedirect   bool
     Proxy             Proxy
     TLSClientConfig   *tls.Config
 }
@@ -75,6 +77,24 @@ func (c *Xrawler) Client(req *http.Request) (resp *http.Response, err error) {
             Proxy:             c.Proxy,
             // DialContext:     func(ctx context.Context, network, addr string) (net.Conn, error),
             MaxIdleConnsPerHost: 100,
+        },
+        CheckRedirect: func(req *http.Request, via []*http.Request) error {
+            if c.DisableRedirect {
+                return http.ErrUseLastResponse
+            } else if len(via) >= 10 {
+                return errors.New("stopped after 10 redirects")
+            }
+
+            if c.DebugRequest {
+                // 输出 http 请求报文
+                if dump, e := httputil.DumpRequest(req, true); e != nil {
+                    log.Println("REDIRECT REQUEST\n" + e.Error())
+                } else {
+                    log.Println("REDIRECT REQUEST\n" + string(dump))
+                }
+            }
+
+            return nil
         },
         Jar: defaultCookieJar,
     }
