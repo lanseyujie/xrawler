@@ -21,7 +21,6 @@ type Xrawler struct {
     ConnectTimeout    time.Duration
     ReadWriteTimeout  time.Duration
     DisableKeepAlives bool
-    DisableRedirect   bool
     Proxy             Proxy
     TLSClientConfig   *tls.Config
 }
@@ -69,7 +68,7 @@ func SetTLSClientConfig(config *tls.Config) {
     defaultXrawler.TLSClientConfig = config
 }
 
-func (c *Xrawler) Client(req *http.Request) (resp *http.Response, err error) {
+func (c *Xrawler) Client(request *Request) (resp *http.Response, err error) {
     client := &http.Client{
         Transport: &http.Transport{
             DisableKeepAlives: c.DisableKeepAlives,
@@ -79,7 +78,7 @@ func (c *Xrawler) Client(req *http.Request) (resp *http.Response, err error) {
             MaxIdleConnsPerHost: 100,
         },
         CheckRedirect: func(req *http.Request, via []*http.Request) error {
-            if c.DisableRedirect {
+            if !request.redirect {
                 return http.ErrUseLastResponse
             } else if len(via) >= 10 {
                 return errors.New("stopped after 10 redirects")
@@ -99,22 +98,22 @@ func (c *Xrawler) Client(req *http.Request) (resp *http.Response, err error) {
         Jar: defaultCookieJar,
     }
 
-    if c.UserAgent != "" && req.Header.Get("User-Agent") == "" {
-        req.Header.Set("User-Agent", c.UserAgent)
+    if c.UserAgent != "" && request.Input.Header.Get("User-Agent") == "" {
+        request.Input.Header.Set("User-Agent", c.UserAgent)
     }
 
     // 0 默认无论成功与否只请求 1 次； -1 不断重试请求直至成功
     for i := 0; c.Attempts == -1 || i <= c.Attempts; i++ {
         if c.DebugRequest {
             // 输出 http 请求报文
-            if dump, e := httputil.DumpRequest(req, true); e != nil {
+            if dump, e := httputil.DumpRequest(request.Input, true); e != nil {
                 log.Println("REQUEST\n" + e.Error())
             } else {
                 log.Println("REQUEST\n" + string(dump))
             }
         }
 
-        resp, err = client.Do(req)
+        resp, err = client.Do(request.Input)
         if err != nil {
             log.Println(err)
         } else {

@@ -10,17 +10,19 @@ import (
 )
 
 type Request struct {
-    Input  *http.Request
-    Output *http.Response
-    params url.Values
-    err    error
+    Input    *http.Request
+    Output   *http.Response
+    params   url.Values
+    redirect bool
+    err      error
 }
 
 func NewRequest(rawUrl, method string) *Request {
     req, err := http.NewRequest(method, rawUrl, nil)
     if err != nil {
         return &Request{
-            err: err,
+            redirect: true,
+            err:      err,
         }
     }
 
@@ -35,6 +37,12 @@ func NewRequest(rawUrl, method string) *Request {
         Output: &http.Response{},
         params: params,
     }
+}
+
+func (req *Request) DisableRedirect() *Request {
+    req.redirect = false
+
+    return req
 }
 
 func (req *Request) SetHost(host string) *Request {
@@ -170,9 +178,9 @@ func (req *Request) Do(c ...*Xrawler) (*http.Response, error) {
 
     var err error
     if len(c) > 0 && c[0] != nil {
-        req.Output, err = c[0].Client(req.Input)
+        req.Output, err = c[0].Client(req)
     } else {
-        req.Output, err = defaultXrawler.Client(req.Input)
+        req.Output, err = defaultXrawler.Client(req)
     }
 
     return req.Output, err
