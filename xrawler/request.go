@@ -169,10 +169,17 @@ func (req *Request) Do(c ...*Xrawler) (*http.Response, error) {
     if req.Input.Method == http.MethodHead || req.Input.Method == http.MethodGet {
         req.Input.URL.RawQuery = req.params.Encode()
     } else if req.Input.Method == http.MethodPost {
-        query := req.params.Encode()
-        if req.Input.Header.Get("Content-Type") == "" && query != "" {
-            req.Input.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-            req.SetBody(query)
+        if req.Input.Header.Get("Content-Type") == "" {
+            if req.Input.Body == nil {
+                query := req.params.Encode()
+                if query != "" {
+                    req.SetBody(query)
+                }
+            }
+
+            if req.Input.Body != nil {
+                req.Input.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+            }
         }
     }
 
