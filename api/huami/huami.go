@@ -43,16 +43,7 @@ func init() {
 
 // 获取令牌
 func Login(phone, password string) (err error) {
-    if token != nil && token.TokenInfo.LoginToken != "" {
-        err = xrawler.
-            Get(TokenLoginApi).
-            SetParam("login_token", token.TokenInfo.LoginToken).
-            Json(&token)
-
-        if err == nil && token.ErrorCode != "" {
-            err = errors.New("token login failed: "+token.ErrorCode)
-        }
-    } else if len(phone) > 0 && len(password) > 0 {
+    if len(phone) > 0 && len(password) > 0 {
         api := strings.Replace(PwdLoginApi, "18600000000", phone, 1)
         req := xrawler.
             Post(api).
@@ -89,7 +80,16 @@ func Login(phone, password string) (err error) {
         if err == nil {
             err = Login("", "")
         }
-    } else {
+    } else if token != nil && token.TokenInfo.LoginToken != "" {
+        err = xrawler.
+            Get(TokenLoginApi).
+            SetParam("login_token", token.TokenInfo.LoginToken).
+            Json(&token)
+
+        if err == nil && token.ErrorCode != "" {
+            err = errors.New("token login failed: "+token.ErrorCode)
+        }
+    } else  {
         err = errors.New("phone or password is empty")
     }
 
